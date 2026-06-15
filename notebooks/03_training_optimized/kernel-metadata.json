@@ -1,7 +1,7 @@
 {
-  "id": "ericwang7717/fingpt-training-v1",
-  "title": "fingpt-training-v1",
-  "code_file": "03_training_qlora.ipynb",
+  "id": "ericwang7717/fingpt-training-optimized",
+  "title": "fingpt-training-optimized",
+  "code_file": "03_training_optimized.ipynb",
   "language": "python",
   "kernel_type": "notebook",
   "enable_gpu": "true",

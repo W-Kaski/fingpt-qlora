@@ -15,15 +15,10 @@ DATASETS_CONFIG = {
         "split": "train",
     },
     "financial_phrasebank": {
-        "hf_id": "financial_phrasebank",
+        "hf_id": "takala/financial_phrasebank",
         "task_type": "sentiment",
         "split": "train",
         "kwargs": {"name": "sentences_allagree"},
-    },
-    "convfinqa": {
-        "hf_id": "FinGPT/ConvFinQA",
-        "task_type": "reasoning",
-        "split": "train",
     },
 }
 
