@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Tuple
+from typing import Tuple, Optional
+import yaml
+from pathlib import Path
 
 
 @dataclass
@@ -50,8 +52,8 @@ class TrainConfig:
     optim: str = "adamw_8bit"
     fp16: bool = True
     bf16: bool = False
-    save_steps: int = 100
-    eval_steps: int = 100
+    save_steps: int = 500
+    eval_steps: int = 500
     logging_steps: int = 5
     save_total_limit: int = 3
     seed: int = 42
@@ -66,7 +68,59 @@ class EvalConfig:
     confidence_level: float = 0.95
 
 
-# Singleton instances
+def load_config(config_path: str = "configs/base.yaml") -> dict:
+    """Load configuration from YAML file."""
+    with open(config_path) as f:
+        return yaml.safe_load(f)
+
+
+def create_configs_from_yaml(config_path: str = "configs/base.yaml"):
+    """Create config instances from YAML file."""
+    config = load_config(config_path)
+
+    model = ModelConfig(
+        base_model=config["model"]["name"],
+        max_seq_length=config["model"]["max_seq_length"],
+        load_in_4bit=config["model"]["load_in_4bit"],
+    )
+
+    lora = LoRAConfig(
+        r=config["lora"]["r"],
+        alpha=config["lora"]["alpha"],
+        dropout=config["lora"]["dropout"],
+        target_modules=tuple(config["lora"]["target_modules"]),
+    )
+
+    data = DataConfig(
+        train_split=config["data"]["train_split"],
+        val_split=config["data"]["val_split"],
+        test_split=config["data"]["test_split"],
+        task_weights=config["data"]["task_weights"],
+    )
+
+    train = TrainConfig(
+        batch_size=config["training"]["batch_size"],
+        grad_accum=config["training"]["gradient_accumulation_steps"],
+        epochs=config["training"]["num_epochs"],
+        lr=config["training"]["learning_rate"],
+        scheduler=config["training"]["scheduler"],
+        warmup_ratio=config["training"]["warmup_ratio"],
+        weight_decay=config["training"]["weight_decay"],
+        optim=config["training"]["optim"],
+        fp16=config["training"]["fp16"],
+        bf16=config["training"]["bf16"],
+        save_steps=config["evaluation"]["save_steps"],
+        eval_steps=config["evaluation"]["eval_steps"],
+        logging_steps=config["evaluation"]["logging_steps"],
+        save_total_limit=config["evaluation"]["save_total_limit"],
+    )
+
+    eval_config = EvalConfig()
+
+    return model, lora, data, train, eval_config
+
+
+# Default singleton instances (from base.yaml)
 MODEL = ModelConfig()
 LORA = LoRAConfig()
 DATA = DataConfig()

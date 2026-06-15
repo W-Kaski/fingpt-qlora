@@ -1,0 +1,13 @@
+{
+  id: ericwang7717/fingpt-training,
+  title: fingpt-training,
+  code_file: 04_training.ipynb,
+  language: python,
+  kernel_type: notebook,
+  enable_gpu: true,
+  enable_internet: true,
+  machine_shape: NvidiaTeslaT4,
+  dataset_sources: [],
+  competition_sources: [],
+  kernel_sources: []
+}
