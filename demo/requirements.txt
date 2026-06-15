@@ -1,0 +1,8 @@
+gradio>=4.0
+torch
+transformers
+peft
+accelerate
+bitsandbytes
+unsloth
+datasets
