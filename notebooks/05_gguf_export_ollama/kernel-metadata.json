@@ -1,0 +1,13 @@
+{
+  "id": "ericwang7717/fingpt-gguf-export",
+  "title": "FinGPT GGUF Export",
+  "code_file": "05_gguf_export_ollama.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "machine_shape": "NvidiaTeslaT4",
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": []
+}

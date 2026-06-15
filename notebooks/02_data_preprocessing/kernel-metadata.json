@@ -1,0 +1,12 @@
+{
+  "id": "ericwang7717/fingpt-data-preprocessing",
+  "title": "FinGPT Data Preprocessing",
+  "code_file": "02_data_preprocessing.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "enable_gpu": "false",
+  "enable_internet": "true",
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": []
+}
