@@ -1,0 +1,26 @@
+# Core ML
+torch>=2.0.0
+transformers>=4.40.0
+datasets>=2.18.0
+peft>=0.10.0
+trl>=0.8.0
+accelerate>=0.28.0
+bitsandbytes>=0.43.0
+
+# Unsloth (install from git for latest)
+# pip install --force-reinstall --no-cache-dir --no-deps git+https://github.com/unslothai/unsloth.git
+
+# Evaluation
+rouge_score>=0.1.2
+bert_score>=0.3.13
+numpy>=1.24.0
+scikit-learn>=1.3.0
+
+# Inference
+gradio>=4.0.0
+
+# HuggingFace
+huggingface_hub>=0.22.0
+
+# Utilities
+tqdm>=4.66.0

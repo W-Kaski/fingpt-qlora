@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Data (recreated by scripts)
+data/raw/
+data/processed/
+data/splits/
+
+# Model artifacts
+checkpoints/
+*.gguf
+*.safetensors
+*.bin
+outputs/
+
+# Kaggle
+kaggle.json
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Results (keep figures, ignore large logs)
+results/training_logs/*.jsonl
+results/eval_outputs/*.jsonl
+
+# Jupyter
+.ipynb_checkpoints/
+
+# W&B
+wandb/
