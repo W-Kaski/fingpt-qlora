@@ -20,8 +20,8 @@ lora:
     - down_proj
 
 training:
-  batch_size: 2
-  gradient_accumulation_steps: 8
+  batch_size: 4
+  gradient_accumulation_steps: 4
   learning_rate: 0.0002
   num_epochs: 1
   max_steps: 10
