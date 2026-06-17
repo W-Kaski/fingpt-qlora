@@ -7,7 +7,9 @@
   "enable_gpu": "true",
   "enable_internet": "true",
   "machine_shape": "NvidiaTeslaT4",
-  "dataset_sources": [],
+  "dataset_sources": [
+    "ericwang7717/fingpt-lora-adapter"
+  ],
   "competition_sources": [],
   "kernel_sources": []
 }
