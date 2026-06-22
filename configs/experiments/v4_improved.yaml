@@ -1,8 +1,9 @@
-# FinGPT-QLoRA v4: diverse training targets + 2 epochs.
-# v3 → v4 changes: expanded IMPLICATIONS (4→15), 5 output format variants, 2 epochs.
+# FinGPT-QLoRA v4: diverse training targets, 3 epochs + early stopping.
+# v3 → v4 changes: expanded IMPLICATIONS (4→15), 5 output format variants.
+# Uses early stopping on eval_loss to prevent overfitting.
 
 name: "v4_improved"
-description: "v4 with diverse training targets and expanded implications. 2 epochs."
+description: "v4 with diverse training targets, 3 epochs, early stopping on eval_loss."
 
 model:
   name: "unsloth/Qwen2.5-7B-Instruct-bnb-4bit"
@@ -27,9 +28,9 @@ training:
   batch_size: 4
   gradient_accumulation_steps: 4
   learning_rate: 0.0001
-  num_epochs: 2
+  num_epochs: 3
   scheduler: cosine
-  warmup_ratio: 0.1
+  warmup_steps: 50
   weight_decay: 0.01
   optim: adamw_8bit
   fp16: true
@@ -38,6 +39,11 @@ training:
   packing: false
   max_train_examples: 5000
   max_eval_examples: 1000
+  save_strategy: "steps"
+  eval_strategy: "steps"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
 
 evaluation:
   eval_steps: 100

@@ -54,6 +54,14 @@ def get_training_args(model_config=MODEL, train_config=TRAIN, output_suffix: str
     from trl import SFTConfig
 
     output_dir = f"{train_config.output_dir}-{output_suffix}"
+
+    # warmup_steps takes precedence over warmup_ratio when > 0
+    warmup_kwargs = {}
+    if train_config.warmup_steps > 0:
+        warmup_kwargs["warmup_steps"] = train_config.warmup_steps
+    else:
+        warmup_kwargs["warmup_ratio"] = train_config.warmup_ratio
+
     return SFTConfig(
         output_dir=output_dir,
         per_device_train_batch_size=train_config.batch_size,
@@ -62,10 +70,9 @@ def get_training_args(model_config=MODEL, train_config=TRAIN, output_suffix: str
         learning_rate=train_config.lr,
         max_steps=train_config.max_steps,
         lr_scheduler_type=train_config.scheduler,
-        warmup_ratio=train_config.warmup_ratio,
+        **warmup_kwargs,
         weight_decay=train_config.weight_decay,
         optim=train_config.optim,
-        max_seq_length=model_config.max_seq_length,
         fp16=train_config.fp16,
         bf16=train_config.bf16,
         logging_steps=train_config.logging_steps,
@@ -79,8 +86,8 @@ def get_training_args(model_config=MODEL, train_config=TRAIN, output_suffix: str
         packing=train_config.packing,
         save_strategy=train_config.save_strategy,
         load_best_model_at_end=train_config.load_best_model_at_end,
-        metric_for_best_model="eval_loss",
-        greater_is_better=False,
+        metric_for_best_model=train_config.metric_for_best_model,
+        greater_is_better=train_config.greater_is_better,
     )
 
 
