@@ -19,6 +19,13 @@ LABEL_MAP = {
     0: "Negative",
     1: "Neutral",
     2: "Positive",
+    # 5-point scale from financial_phrasebank
+    "strong positive": "Positive",
+    "moderately positive": "Positive",
+    "mildly positive": "Positive",
+    "strong negative": "Negative",
+    "moderately negative": "Negative",
+    "mildly negative": "Negative",
 }
 
 # Sentiment-specific implication templates (15 per class for output diversity)
