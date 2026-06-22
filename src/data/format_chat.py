@@ -1,6 +1,8 @@
 """Convert raw datasets to ShareGPT conversational format."""
 
 import json
+import hashlib
+import re
 from pathlib import Path
 
 from src.config import DATA
@@ -19,29 +21,158 @@ LABEL_MAP = {
     2: "Positive",
 }
 
+# Sentiment-specific implication templates (15 per class for output diversity)
+IMPLICATIONS = {
+    "Positive": [
+        "This suggests bullish momentum and potential upside for the stock.",
+        "Investors may view this as a buying opportunity with growth potential.",
+        "The positive developments could attract institutional interest.",
+        "Market sentiment appears favorable, supporting upward price movement.",
+        "Strong fundamentals point to sustained investor confidence.",
+        "The rally may continue as buyers absorb available supply.",
+        "This signals improving operational efficiency and margin expansion.",
+        "Earnings beats like this typically lead to analyst upgrades.",
+        "The positive guidance suggests management sees smooth sailing ahead.",
+        "Sector rotation into this space appears to be accelerating.",
+        "Momentum indicators confirm the strength of this move.",
+        "This could trigger re-rating across the peer group.",
+        "Dividend sustainability looks solid given these results.",
+        "The market is rewarding execution, not just promise.",
+        "Technical breakout confirms fundamental strength.",
+    ],
+    "Negative": [
+        "This indicates bearish pressure and potential downside risk.",
+        "Investors should exercise caution and monitor for further deterioration.",
+        "The negative signals may trigger selling pressure in the near term.",
+        "Risk-off sentiment could weigh on the stock in the coming sessions.",
+        "Continued weakness here could breach key support levels.",
+        "The earnings miss raises questions about forward guidance.",
+        "Debt covenants may come under pressure if conditions persist.",
+        "Institutional holders may reduce exposure on this news.",
+        "Short interest is likely to spike as a result.",
+        "The sector headwinds suggest limited near-term recovery potential.",
+        "Management credibility takes a hit with this kind of miss.",
+        "The selloff appears justified by deteriorating fundamentals.",
+        "Further downside exists if support at current levels breaks.",
+        "Competitive pressure is squeezing margins faster than expected.",
+        "Regulatory risk adds an additional layer of uncertainty.",
+    ],
+    "Neutral": [
+        "The market is likely to remain range-bound until clearer signals emerge.",
+        "Investors may adopt a wait-and-see approach pending further developments.",
+        "The balanced outlook suggests limited near-term price movement.",
+        "Current conditions warrant a neutral stance with close monitoring.",
+        "The market has largely priced in these developments.",
+        "No clear catalyst exists to drive significant movement either way.",
+        "Consolidation is likely before the next directional move.",
+        "Volume patterns suggest neither bulls nor bears have conviction.",
+        "The results are in line with consensus expectations.",
+        "Traders will be watching for the next data point to break the deadlock.",
+        "The muted reaction suggests the news was largely expected.",
+        "Range-bound trading reflects uncertainty about the macro outlook.",
+        "Institutional positioning remains balanced at current levels.",
+        "The setup favors patience over aggressive positioning.",
+        "Risk/reward appears roughly symmetric at this juncture.",
+    ],
+}
+
 
 def normalize_label(label) -> str:
     """Normalize sentiment label to Positive/Negative/Neutral."""
-    if isinstance(label, (int, float)):
-        label = int(label)
+    # Check original label first (handles int keys like 0, 1, 2)
+    if label in LABEL_MAP:
+        return LABEL_MAP[label]
     label_str = str(label).strip().lower()
     if label_str in LABEL_MAP:
         return LABEL_MAP[label_str]
     return str(label).capitalize()
 
 
+def extract_key_factors(text: str, max_factors: int = 3) -> list[str]:
+    """Extract key factors from financial text by splitting into sentences."""
+    sentences = re.split(r'(?<!\d)\.(?!\d)\s*', text)
+    sentences = [s.strip() for s in sentences if len(s.strip()) > 20]
+
+    financial_keywords = [
+        'revenue', 'profit', 'loss', 'earnings', 'growth', 'decline',
+        'surge', 'drop', 'rise', 'fall', 'increase', 'decrease',
+        'stock', 'shares', 'market', 'trading', 'investor',
+        'billion', 'million', 'percent', '%', '$',
+        'rates', 'inflation', 'gdp', 'unemployment', 'fed',
+        'guidance', 'outlook', 'forecast', 'upgrade', 'downgrade',
+        'miss', 'beat', 'estimate', 'consensus', 'restructuring',
+        'debt', 'cash flow', 'margin', 'acquisition', 'merger',
+    ]
+
+    scored = []
+    for s in sentences:
+        s_lower = s.lower()
+        score = sum(1 for kw in financial_keywords if kw in s_lower)
+        if re.search(r'\d+', s):
+            score += 1
+        scored.append((score, s))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    factors = [s for _, s in scored[:max_factors]]
+
+    if not factors:
+        factors = sentences[:max_factors]
+
+    # Truncate overly long factors to keep outputs concise
+    return [f[:150] + "..." if len(f) > 150 else f for f in factors]
+
+
 def format_sentiment_response(label: str, text: str) -> str:
-    """Create a structured sentiment analysis response."""
+    """Create a structured sentiment analysis response with extracted factors.
+
+    Uses 5 output format variants (selected by stable hash) so the model
+    learns analytical reasoning rather than a single rigid template.
+    """
     label = normalize_label(label)
-    return (
-        f"## Sentiment Analysis\n\n"
-        f"**Sentiment: {label}**\n\n"
-        f"**Key Factors:**\n"
-        f"- {text[:200]}\n\n"
-        f"**Implications:** The overall sentiment is {label.lower()}, which suggests "
-        f"{'positive' if label == 'Positive' else 'negative' if label == 'Negative' else 'neutral'} "
-        f"market outlook based on the given text."
-    )
+    factors = extract_key_factors(text)
+    factors_text = "\n".join(f"- {f}" for f in factors)
+
+    # Stable hash: same text always produces the same output (reproducibility)
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    impl_idx = int(digest[:8], 16) % len(IMPLICATIONS[label])
+    implication = IMPLICATIONS[label][impl_idx]
+    variant = int(digest[8:16], 16) % 5
+
+    if variant == 0:
+        # Classic structured format
+        return (
+            f"## Sentiment Analysis\n\n"
+            f"**Sentiment: {label}**\n\n"
+            f"**Key Factors:**\n{factors_text}\n\n"
+            f"**Implications:** {implication}"
+        )
+    elif variant == 1:
+        # Paragraph style
+        return (
+            f"The overall sentiment is **{label.lower()}**. "
+            f"{' '.join(factors[:2])}. "
+            f"{implication}"
+        )
+    elif variant == 2:
+        # Driver-first analysis
+        main_factor = factors[0] if factors else text[:200]
+        return (
+            f"**{label}**\n\n"
+            f"The primary driver is: {main_factor}\n\n"
+            f"Looking ahead: {implication}"
+        )
+    elif variant == 3:
+        # Conclusion first
+        return (
+            f"Sentiment: **{label}**\n\n"
+            f"Key takeaway: {implication}\n\n"
+            f"Supporting points:\n{factors_text}"
+        )
+    else:
+        # Concise
+        return (
+            f"**{label}** — {implication}"
+        )
 
 
 def format_summary_response(text: str) -> str:

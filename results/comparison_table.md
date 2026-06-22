@@ -1,27 +1,15 @@
-# Evaluation Results
+# v3_completion_only Results
 
-<!-- Update after running 04_evaluation.ipynb -->
+| Metric | Base | Fine-tuned | Delta | Notes |
+| --- | ---: | ---: | ---: | --- |
+| Sentiment accuracy | 0.581 | 0.833 | +0.252 | Primary metric |
+| ROUGE-L | 0.230 | 0.981 | +0.751 | Secondary format/text similarity signal |
+| Format compliance | n/a | 20/20 | n/a | Manual structured-output check |
 
-## Model Comparison
+Source adapter:
 
-| Task | Metric | Base Model | Fine-tuned | Delta |
-|------|--------|-----------|------------|-------|
-| Sentiment | Accuracy | TBD | TBD | TBD |
-| Sentiment | ROUGE-L | TBD | TBD | TBD |
-| Summary | ROUGE-L | TBD | TBD | TBD |
-| QA | BERTScore F1 | TBD | TBD | TBD |
-| Reasoning | Exact Match | TBD | TBD | TBD |
+```text
+ericwang7717/fingpt-lora-adapter-v3
+```
 
-## Ablation Study
-
-| Experiment | r | Epochs | LR | Sentiment Acc | ROUGE-L |
-|-----------|---|--------|-----|---------------|---------|
-| v1 (baseline) | 16 | 3 | 2e-4 | TBD | TBD |
-| v2 (high rank) | 32 | 3 | 1e-4 | TBD | TBD |
-| v3 (fewer epochs) | 16 | 1 | 2e-4 | TBD | TBD |
-| v4 (low rank) | 8 | 3 | 2e-4 | TBD | TBD |
-
-## Statistical Significance
-
-- Bootstrap 95% CI: TBD
-- McNemar's test p-value: TBD
+This file should be regenerated from Kaggle evaluation artifacts in future runs.

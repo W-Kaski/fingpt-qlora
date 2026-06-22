@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
-from typing import Tuple, Optional
+from typing import Tuple
 import yaml
-from pathlib import Path
 
 
 @dataclass
@@ -15,7 +14,7 @@ class ModelConfig:
 class LoRAConfig:
     r: int = 16
     alpha: int = 32
-    dropout: float = 0.0
+    dropout: float = 0.05
     target_modules: Tuple[str, ...] = (
         "q_proj", "k_proj", "v_proj", "o_proj",
         "gate_proj", "up_proj", "down_proj",
@@ -41,13 +40,13 @@ class DataConfig:
 
 @dataclass
 class TrainConfig:
-    output_dir: str = "outputs/fingpt-qlora"
-    batch_size: int = 2
-    grad_accum: int = 8
-    epochs: int = 3
-    lr: float = 2e-4
+    output_dir: str = "outputs/v3_completion_only"
+    batch_size: int = 4
+    grad_accum: int = 4
+    epochs: int = 1
+    lr: float = 1e-4
     scheduler: str = "cosine"
-    warmup_ratio: float = 0.05
+    warmup_ratio: float = 0.1
     weight_decay: float = 0.01
     optim: str = "adamw_8bit"
     fp16: bool = True
@@ -57,6 +56,14 @@ class TrainConfig:
     logging_steps: int = 5
     save_total_limit: int = 3
     seed: int = 42
+    max_steps: int = -1
+    save_strategy: str = "steps"
+    eval_strategy: str = "steps"
+    load_best_model_at_end: bool = True
+    completion_only_loss: bool = True
+    packing: bool = False
+    max_train_examples: int = 5000
+    max_eval_examples: int = 1000
 
 
 @dataclass
@@ -99,6 +106,7 @@ def create_configs_from_yaml(config_path: str = "configs/base.yaml"):
     )
 
     train = TrainConfig(
+        output_dir=f"outputs/{config['training'].get('experiment_name', 'v3_completion_only')}",
         batch_size=config["training"]["batch_size"],
         grad_accum=config["training"]["gradient_accumulation_steps"],
         epochs=config["training"]["num_epochs"],
@@ -113,6 +121,14 @@ def create_configs_from_yaml(config_path: str = "configs/base.yaml"):
         eval_steps=config["evaluation"]["eval_steps"],
         logging_steps=config["evaluation"]["logging_steps"],
         save_total_limit=config["evaluation"]["save_total_limit"],
+        max_steps=config["training"].get("max_steps", -1),
+        save_strategy=config["training"].get("save_strategy", "steps"),
+        eval_strategy=config["training"].get("eval_strategy", "steps"),
+        load_best_model_at_end=config["training"].get("load_best_model_at_end", True),
+        completion_only_loss=config["training"].get("completion_only_loss", True),
+        packing=config["training"].get("packing", False),
+        max_train_examples=config["training"].get("max_train_examples", 5000),
+        max_eval_examples=config["training"].get("max_eval_examples", 1000),
     )
 
     eval_config = EvalConfig()

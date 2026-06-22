@@ -1,173 +1,166 @@
 # FinGPT-QLoRA
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Kaggle](https://img.shields.io/badge/Kaggle-Notebook-blue.svg)](https://www.kaggle.com/)
-[![Hugging Face](https://img.shields.io/badge/🤗_Hugging_Face-Model-yellow.svg)](https://huggingface.co/)
+Financial sentiment assistant fine-tuned from `unsloth/Qwen2.5-7B-Instruct-bnb-4bit` with QLoRA on Kaggle T4.
 
-**Financial analysis chatbot fine-tuned with QLoRA on Qwen2.5-7B-Instruct.**
+## Current Experiment
 
-Fine-tuned for financial sentiment analysis, report summarization, financial Q&A, and investment analysis using Unsloth on Kaggle T4 GPUs.
+The repository tracks two experiments: `v3_completion_only` (baseline) and `v4_improved` (active).
 
-## Results
+### v4_improved (active)
 
-<!-- Update after training -->
-| Task | Metric | Base Model | Fine-tuned | Delta |
-|------|--------|-----------|------------|-------|
-| Sentiment | Accuracy | TBD | TBD | TBD |
-| Sentiment | ROUGE-L | TBD | TBD | TBD |
-| Summary | ROUGE-L | TBD | TBD | TBD |
-| QA | BERTScore F1 | TBD | TBD | TBD |
-| Reasoning | Exact Match | TBD | TBD | TBD |
+| Item | Value |
+| --- | --- |
+| Base model | `unsloth/Qwen2.5-7B-Instruct-bnb-4bit` |
+| Training backend | Kaggle Notebook with T4 GPU |
+| Dataset format | prompt-completion |
+| Loss | `completion_only_loss=True` |
+| Train size | 5000 examples |
+| Epochs | 2 |
+| Effective batch | 16 |
+| Learning rate | `1e-4` |
+| LoRA | `r=16`, `alpha=32`, `dropout=0.05` |
+| Key change | 15 implications/sentiment, 5 output format variants |
 
-## Architecture
+### v3_completion_only (baseline)
 
-```
-Qwen2.5-7B-Instruct (4-bit NF4)
-        │
-        ▼
-  QLoRA Adapters (r=16, α=32)
-  ┌─────────────────────────────┐
-  │ q_proj  k_proj  v_proj      │
-  │ o_proj  gate_proj            │
-  │ up_proj  down_proj           │
-  └─────────────────────────────┘
-        │
-        ▼
-  Financial Instruction Dataset
-  (~10k examples, 5 task types)
-        │
-        ▼
-  Deployed: HF Spaces (Gradio)
-            GGUF (Ollama)
-```
+| Metric | Base | Fine-tuned | Delta |
+| --- | ---: | ---: | ---: |
+| Sentiment accuracy | 0.581 | 0.833 | +0.252 |
+| ROUGE-L | 0.230 | 0.981 | +0.751 |
+| Format compliance | n/a | 20/20 | n/a |
 
-## Quick Start
+ROUGE-L is treated as a format/text similarity signal, not as proof of financial reasoning.
 
-```bash
-# Clone
-git clone https://github.com/W-Kaski/fingpt-qlora.git
-cd fingpt-qlora
+v4 diagnostic-first workflow: run `v4_diagnostic.yaml` (10 steps) first, then `v4_improved.yaml`.
 
-# Install
-pip install -r demo/requirements.txt
+## Repository Role
 
-# Run demo locally (requires Ollama with fingpt model)
-ollama run fingpt "Analyze sentiment: Apple beats earnings estimates"
-```
+Kaggle is the remote training backend. This repository is the control plane:
 
-## Project Structure
+- source-controlled configs
+- data formatting code
+- notebook and Kaggle CLI workflow
+- result manifests and evaluation tables
+- demo and inference helpers
 
-```
-fingpt-qlora/
-├── notebooks/                  # Each folder = one Kaggle kernel
-│   ├── 01_data_exploration/    # Data profiling (no GPU)
-│   ├── 02_data_preprocessing/  # Data pipeline (no GPU)
-│   ├── 03_training_smoke_test/ # Quick validation: 100 examples, 1 epoch
-│   ├── 03_training_qlora/      # Full training (T4, ~2h)
-│   ├── 04_evaluation/          # Base vs fine-tuned comparison
-│   └── 05_gguf_export_ollama/  # GGUF export for Ollama
-├── src/                        # Python modules
-│   ├── config.py               # All hyperparameters
-│   ├── data/                   # Data pipeline
-│   ├── eval/                   # Evaluation metrics
-│   ├── train/                  # Training scripts
-│   └── inference/              # Inference helpers
-├── demo/                       # Gradio demo app
-└── scripts/                    # Utility scripts
-```
+Large data, checkpoints, and adapters are not committed.
 
-## Methodology
-
-### Data
-
-- **FinGPT Sentiment** (`FinGPT/fingpt-sentiment-train`): ~7.7k financial sentiment examples
-- **Financial PhraseBank** (`financial_phrasebank`): ~2.2k sentences with unanimous agreement
-- **ConvFinQA** (`FinGPT/ConvFinQA`): ~5k numerical reasoning questions
-- Custom-curated financial Q&A and earnings summaries
-
-All data converted to ShareGPT conversational format with task-specific system prompts.
-
-### Training
-
-- **Base Model:** `unsloth/Qwen2.5-7B-Instruct-bnb-4bit`
-- **Method:** QLoRA (4-bit NF4 quantization + LoRA adapters)
-- **LoRA Config:** r=16, α=32, all attention + MLP layers
-- **Framework:** Unsloth (2x faster, 70% less VRAM)
-- **Effective Batch Size:** 16 (2 × 8 gradient accumulation)
-- **Learning Rate:** 2e-4 with cosine scheduler
-- **Epochs:** 3
-- **Training Time:** ~1.5-2 hours on Kaggle T4
-
-### Evaluation
-
-- Sentiment accuracy and macro F1
-- ROUGE-L for summarization quality
-- BERTScore F1 for semantic similarity
-- Exact match for numerical reasoning
-- Bootstrap 95% confidence intervals
-- McNemar's test for statistical significance
-
-## Reproduction
-
-### On Kaggle (Recommended)
-
-1. Create a new Kaggle Notebook with GPU (T4) enabled
-2. Enable Internet in notebook settings
-3. Run notebooks in order: `01` → `02` → `03` → `04` → `05`
-4. Total GPU time: ~4-5 hours for full pipeline
-
-### Ablation Experiments
-
-Run `03_training_qlora.ipynb` with different configs:
-
-| Experiment | LORA_R | LEARNING_RATE | NUM_EPOCHS |
-|-----------|--------|---------------|------------|
-| v1_baseline | 16 | 2e-4 | 3 |
-| v2_high_rank | 32 | 1e-4 | 3 |
-| v3_few_epochs | 16 | 2e-4 | 1 |
-| v4_low_rank | 8 | 2e-4 | 3 |
-
-## Deployment
-
-### HuggingFace Spaces
+## Local Setup
 
 ```bash
-# Push model to Hub
-./scripts/push_to_hub.sh YOUR_HF_TOKEN
-
-# Create HF Space with Gradio SDK
-# Upload demo/app.py and demo/requirements.txt
+pip install -r requirements.txt
 ```
 
-### Ollama (Local)
+Run local validation:
 
 ```bash
-# Export GGUF
-# Run notebook 05_gguf_export_ollama.ipynb
-
-# Create Ollama model
-./scripts/create_ollama_model.sh
-
-# Run
-ollama run fingpt "Your financial question here"
+python -m unittest discover tests
+python -m compileall -q src tests
 ```
 
-## Tech Stack
+## Data Pipeline
 
-| Component | Technology |
-|-----------|-----------|
-| Base Model | Qwen2.5-7B-Instruct |
-| Fine-tuning | QLoRA via Unsloth |
-| Framework | HuggingFace PEFT + TRL |
-| Training | Kaggle T4 GPU |
-| Demo | Gradio ChatInterface |
-| Local Inference | GGUF + Ollama |
-| Evaluation | ROUGE, BERTScore, Bootstrap CI |
+Canonical implementation lives in `src.data`. The preprocessing notebook is only a Kaggle wrapper.
+
+```bash
+python -m src.data.download
+python -m src.data.preprocess
+python -m src.data.format_chat
+python -m src.data.merge_datasets
+python -m src.data.splits
+python -m src.data.manifest --splits-dir data/splits --output results/data_manifest_v3.json
+```
+
+Generated files go under `data/` and are ignored by git.
+
+## Training
+
+Active config:
+
+```bash
+configs/experiments/v4_improved.yaml
+```
+
+Diagnostic config:
+
+```bash
+configs/experiments/v4_diagnostic.yaml
+```
+
+Run the diagnostic first:
+
+```bash
+python -m src.train.train_sft \
+  --config configs/experiments/v4_diagnostic.yaml \
+  --output-suffix diagnostic
+```
+
+Inspect diagnostic artifacts before full training:
+
+- `outputs/v4_diagnostic-diagnostic/run_manifest.json`
+- `outputs/v4_diagnostic-diagnostic/trainer_state.json`
+- `outputs/v4_diagnostic-diagnostic/config_used.yaml`
+
+Full training entrypoint:
+
+```bash
+python -m src.train.train_sft \
+  --config configs/experiments/v4_improved.yaml \
+  --output-suffix kaggle
+```
+
+For actual GPU training, use the Kaggle workflow in `docs/KAGGLE_WORKFLOW.md`.
+
+Each training run writes reproducibility artifacts next to the adapter:
+
+- `config_used.yaml`
+- `trainer_state.json`
+- `run_manifest.json`
+
+The data pipeline writes:
+
+- `results/data_manifest_v3.json`
+
+## Evaluation
+
+Evaluation entrypoint:
+
+```bash
+python -m src.eval.run_evaluation \
+  --test-data data/splits/test.json \
+  --base-model unsloth/Qwen2.5-7B-Instruct-bnb-4bit \
+  --adapter-path outputs/v4_improved-kaggle \
+  --output-dir results/eval_outputs/v4_improved
+```
+
+The script writes:
+
+- `metrics.json`
+- `predictions.jsonl`
+- `comparison_table.md`
+
+`notebooks/05_evaluation/` is a Kaggle wrapper around this script.
+
+## Notebooks
+
+| Notebook | Purpose |
+| --- | --- |
+| `notebooks/01_data_exploration/` | optional exploratory inspection only |
+| `notebooks/02_data_preprocessing/` | Kaggle wrapper for `src.data` pipeline |
+| `notebooks/04_training/` | v3 QLoRA diagnostic wrapper |
+| `notebooks/05_evaluation/` | base vs fine-tuned evaluation |
+| `notebooks/06_demo/` | adapter-backed demo notebook |
+
+Old diagnostic, baseline, and GGUF notebooks were removed from the active workflow.
+
+## Demo
+
+```bash
+MODEL_PATH=outputs/lora_adapter python demo/app.py
+```
+
+`MODEL_PATH` can point to a local adapter folder or a hosted adapter/model path.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE)
-
-## Author
-
-Eric Wang - [GitHub](https://github.com/W-Kaski) | [Website](https://www.anio.me/)
+MIT License.

@@ -43,9 +43,13 @@ Thumbs.db
 # Results (keep figures, ignore large logs)
 results/training_logs/*.jsonl
 results/eval_outputs/*.jsonl
+results/kaggle/
 
 # Jupyter
 .ipynb_checkpoints/
 
 # W&B
 wandb/
+
+# Local Unsloth generated cache
+unsloth_compiled_cache/

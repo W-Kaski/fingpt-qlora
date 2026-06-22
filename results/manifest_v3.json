@@ -1,0 +1,42 @@
+{
+  "experiment": "v3_completion_only",
+  "config": "configs/experiments/v3_completion_only.yaml",
+  "training_backend": "kaggle",
+  "training_kernel": "ericwang7717/fingpt-training",
+  "evaluation_kernel": "ericwang7717/fingpt-evaluation",
+  "adapter_dataset": "ericwang7717/fingpt-lora-adapter-v3",
+  "base_model": "unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
+  "data_contract": {
+    "format": "prompt-completion",
+    "train_examples": 5000,
+    "max_eval_examples": 1000,
+    "split_seed": 42
+  },
+  "training": {
+    "completion_only_loss": true,
+    "epochs": 1,
+    "learning_rate": 0.0001,
+    "effective_batch_size": 16,
+    "lora_r": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "warmup_ratio": 0.1,
+    "packing": false
+  },
+  "recorded_metrics": {
+    "sentiment_accuracy": {
+      "base": 0.581,
+      "fine_tuned": 0.833,
+      "delta": 0.252
+    },
+    "rouge_l": {
+      "base": 0.23,
+      "fine_tuned": 0.981,
+      "delta": 0.751,
+      "interpretation": "secondary format/text similarity signal"
+    },
+    "format_compliance": {
+      "fine_tuned": "20/20"
+    }
+  }
+}

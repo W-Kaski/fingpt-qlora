@@ -1,5 +1,7 @@
-# FinGPT-QLoRA current production configuration.
-# Source of truth: Kaggle v3_completion_only experiment.
+# FinGPT-QLoRA v3: completion-only SFT.
+
+name: "v3_completion_only"
+description: "Current Kaggle-backed production experiment: prompt-completion data with completion_only_loss."
 
 model:
   name: "unsloth/Qwen2.5-7B-Instruct-bnb-4bit"

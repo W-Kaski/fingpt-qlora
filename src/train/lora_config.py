@@ -7,7 +7,7 @@ PRESETS = {
     "baseline": {
         "r": 16,
         "alpha": 32,
-        "dropout": 0.0,
+        "dropout": 0.05,
         "target_modules": [
             "q_proj", "k_proj", "v_proj", "o_proj",
             "gate_proj", "up_proj", "down_proj",
@@ -16,7 +16,7 @@ PRESETS = {
     "high_rank": {
         "r": 32,
         "alpha": 64,
-        "dropout": 0.0,
+        "dropout": 0.05,
         "target_modules": [
             "q_proj", "k_proj", "v_proj", "o_proj",
             "gate_proj", "up_proj", "down_proj",
@@ -25,7 +25,7 @@ PRESETS = {
     "low_rank": {
         "r": 8,
         "alpha": 16,
-        "dropout": 0.0,
+        "dropout": 0.05,
         "target_modules": [
             "q_proj", "k_proj", "v_proj", "o_proj",
             "gate_proj", "up_proj", "down_proj",
@@ -34,7 +34,7 @@ PRESETS = {
     "attention_only": {
         "r": 16,
         "alpha": 32,
-        "dropout": 0.0,
+        "dropout": 0.05,
         "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"],
     },
 }

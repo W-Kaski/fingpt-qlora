@@ -1,5 +1,8 @@
-# FinGPT-QLoRA current production configuration.
-# Source of truth: Kaggle v3_completion_only experiment.
+# FinGPT-QLoRA v4 diagnostic smoke run.
+# Purpose: verify v4 format changes, expanded IMPLICATIONS, and 5-variant output before full training.
+
+name: "v4_diagnostic"
+description: "Small-sample diagnostic run for v4 improved SFT."
 
 model:
   name: "unsloth/Qwen2.5-7B-Instruct-bnb-4bit"
@@ -20,11 +23,12 @@ lora:
     - down_proj
 
 training:
-  experiment_name: "v3_completion_only"
+  experiment_name: "v4_diagnostic"
   batch_size: 4
   gradient_accumulation_steps: 4
   learning_rate: 0.0001
   num_epochs: 1
+  max_steps: 10
   scheduler: cosine
   warmup_ratio: 0.1
   weight_decay: 0.01
@@ -33,14 +37,17 @@ training:
   bf16: false
   completion_only_loss: true
   packing: false
-  max_train_examples: 5000
-  max_eval_examples: 1000
+  max_train_examples: 128
+  max_eval_examples: 64
+  save_strategy: "no"
+  eval_strategy: "no"
+  load_best_model_at_end: false
 
 evaluation:
-  eval_steps: 100
-  save_steps: 100
-  save_total_limit: 5
-  logging_steps: 5
+  eval_steps: 999999
+  save_steps: 999999
+  save_total_limit: 1
+  logging_steps: 1
 
 data:
   train_split: 0.85

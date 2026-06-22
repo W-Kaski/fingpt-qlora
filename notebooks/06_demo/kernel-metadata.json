@@ -1,13 +1,15 @@
 {
-  "id": "ericwang7717/fingpt-gguf-export",
-  "title": "FinGPT GGUF Export",
-  "code_file": "05_gguf_export_ollama.ipynb",
+  "id": "ericwang7717/fingpt-demo",
+  "title": "fingpt-demo",
+  "code_file": "06_demo.ipynb",
   "language": "python",
   "kernel_type": "notebook",
   "enable_gpu": "true",
   "enable_internet": "true",
   "machine_shape": "NvidiaTeslaT4",
-  "dataset_sources": [],
+  "dataset_sources": [
+    "ericwang7717/fingpt-lora-adapter-v3"
+  ],
   "competition_sources": [],
   "kernel_sources": []
 }

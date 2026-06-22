@@ -1,5 +1,8 @@
-# FinGPT-QLoRA current production configuration.
-# Source of truth: Kaggle v3_completion_only experiment.
+# FinGPT-QLoRA v4: diverse training targets + 2 epochs.
+# v3 → v4 changes: expanded IMPLICATIONS (4→15), 5 output format variants, 2 epochs.
+
+name: "v4_improved"
+description: "v4 with diverse training targets and expanded implications. 2 epochs."
 
 model:
   name: "unsloth/Qwen2.5-7B-Instruct-bnb-4bit"
@@ -20,11 +23,11 @@ lora:
     - down_proj
 
 training:
-  experiment_name: "v3_completion_only"
+  experiment_name: "v4_improved"
   batch_size: 4
   gradient_accumulation_steps: 4
   learning_rate: 0.0001
-  num_epochs: 1
+  num_epochs: 2
   scheduler: cosine
   warmup_ratio: 0.1
   weight_decay: 0.01
